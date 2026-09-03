@@ -22,8 +22,8 @@ test("dashboard includes live API and explicit demo fallback", async () => {
     readFile(new URL("app/data.ts", root), "utf8"),
     readFile(new URL("app/api/watchdog/[endpoint]/route.ts", root), "utf8"),
   ]);
-  assert.match(client, /source:\"live\"/);
-  assert.match(client, /source:\"demo\"/);
+  assert.match(client, /source:"live"/);
+  assert.match(client, /source:"demo"/);
   assert.match(data, /demoRecommendations/);
   assert.match(proxy, /WATCHDOG_API_URL/);
   assert.match(proxy, /allowedEndpoints/);
