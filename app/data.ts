@@ -15,7 +15,11 @@ export type Snapshot = { timestamp: string; nodes: number; total_cost: number };
 export type Overview = { timestamp: string; nodes: number; namespaces: number; workloads: number; total_cost: number; potential_savings: number; recommendations: Record<string, number> };
 export type AgentStatus = { agent_name: string; status: string; started_at: string; last_snapshot_at: string | null; storage: string };
 
-export const demoOverview: Overview = { timestamp: new Date(Date.now() - 42000).toISOString(), nodes: 3, namespaces: 6, workloads: 24, total_cost: 486.2, potential_savings: 67.84, recommendations: { approved: 2, rejected: 1, pending: 0 } };
+// Keep the server-rendered fixture deterministic. Relative times are calculated
+// only after hydration so the first server and browser renders always match.
+const demoBaseTime = Date.parse("2026-09-17T09:00:00.000Z");
+
+export const demoOverview: Overview = { timestamp: new Date(demoBaseTime - 42000).toISOString(), nodes: 3, namespaces: 6, workloads: 24, total_cost: 486.2, potential_savings: 67.84, recommendations: { approved: 2, rejected: 1, pending: 0 } };
 
 export const demoWorkloads: Workload[] = [
   { name:"checkout-api", namespace:"storefront", type:"Deployment", replicas:4, cpu_requests:1.2, cpu_limits:2, mem_requests:536870912, mem_limits:1073741824, cpu_usage:.42, mem_usage:348127232, net_rx_usage:1840000, net_tx_usage:920000, total_cost:18.42, is_excluded:false, service_dependencies:["checkout","payments"] },
@@ -27,10 +31,10 @@ export const demoWorkloads: Workload[] = [
 ];
 
 export const demoRecommendations: Recommendation[] = [
-  { id:1, target:"storefront/checkout-api", current_state:'{"cpu_requests":"1200m","replicas":4}', proposed_state:'{"cpu_requests":"850m","replicas":4}', expected_savings:41.2, confidence_score:.94, supporting_evidence:"P95 CPU remained below 46% of requested capacity across the observation window.", rule_trace:["namespace-allowed","min-replicas-pass","cpu-step-down-pass"], status:"Approved", timestamp:new Date(Date.now()-180000).toISOString() },
-  { id:2, target:"intelligence/recommendation-worker", current_state:'{"memory_requests":"768Mi"}', proposed_state:'{"memory_requests":"640Mi"}', expected_savings:26.64, confidence_score:.87, supporting_evidence:"Memory working set is stable with 22% headroom after the proposed reduction.", rule_trace:["namespace-allowed","memory-headroom-pass"], status:"Approved", timestamp:new Date(Date.now()-360000).toISOString() },
-  { id:3, target:"monitoring/prometheus-server", current_state:'{"cpu_requests":"1000m"}', proposed_state:'{"cpu_requests":"700m"}', expected_savings:18.1, confidence_score:.79, supporting_evidence:"CPU demand is moderate but the namespace is protected.", rule_trace:["namespace-excluded"], status:"Rejected", rejection_reason:"namespace monitoring is excluded from automated changes", timestamp:new Date(Date.now()-720000).toISOString() },
+  { id:1, target:"storefront/checkout-api", current_state:'{"cpu_requests":"1200m","replicas":4}', proposed_state:'{"cpu_requests":"850m","replicas":4}', expected_savings:41.2, confidence_score:.94, supporting_evidence:"P95 CPU remained below 46% of requested capacity across the observation window.", rule_trace:["namespace-allowed","min-replicas-pass","cpu-step-down-pass"], status:"Approved", timestamp:new Date(demoBaseTime-180000).toISOString() },
+  { id:2, target:"intelligence/recommendation-worker", current_state:'{"memory_requests":"768Mi"}', proposed_state:'{"memory_requests":"640Mi"}', expected_savings:26.64, confidence_score:.87, supporting_evidence:"Memory working set is stable with 22% headroom after the proposed reduction.", rule_trace:["namespace-allowed","memory-headroom-pass"], status:"Approved", timestamp:new Date(demoBaseTime-360000).toISOString() },
+  { id:3, target:"monitoring/prometheus-server", current_state:'{"cpu_requests":"1000m"}', proposed_state:'{"cpu_requests":"700m"}', expected_savings:18.1, confidence_score:.79, supporting_evidence:"CPU demand is moderate but the namespace is protected.", rule_trace:["namespace-excluded"], status:"Rejected", rejection_reason:"namespace monitoring is excluded from automated changes", timestamp:new Date(demoBaseTime-720000).toISOString() },
 ];
 
-export const demoSnapshots: Snapshot[] = [492.8,491.3,489.7,490.2,488.1,487.4,486.2].map((cost,index)=>({ timestamp:new Date(Date.now()-(6-index)*86400000).toISOString(), nodes:3, total_cost:cost }));
-export const demoStatus: AgentStatus = { agent_name:"watchdog-agent-01", status:"running", started_at:new Date(Date.now()-86400000*3).toISOString(), last_snapshot_at:demoOverview.timestamp, storage:"connected" };
+export const demoSnapshots: Snapshot[] = [492.8,491.3,489.7,490.2,488.1,487.4,486.2].map((cost,index)=>({ timestamp:new Date(demoBaseTime-(6-index)*86400000).toISOString(), nodes:3, total_cost:cost }));
+export const demoStatus: AgentStatus = { agent_name:"watchdog-agent-01", status:"running", started_at:new Date(demoBaseTime-86400000*3).toISOString(), last_snapshot_at:demoOverview.timestamp, storage:"connected" };

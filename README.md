@@ -14,7 +14,24 @@ Read-only operations and FinOps visibility for the Watchdog Kubernetes control p
 
 ## Local Development
 
-Copy `.env.example` to `.env.local`, start the Watchdog agent on port `8081`, then install dependencies and run `npm run dev`. The app uses demo data if the API is unavailable.
+The dashboard needs the agent version that exposes the `/api/v1/*` visibility routes. In the `watchdog-agent` repository, use the `feature/dashboard-api` branch until that branch is merged into `main`.
+
+Create `.env.local` with this exact content (or set the same environment variable in the PowerShell window that starts the dashboard):
+
+```dotenv
+WATCHDOG_API_URL=http://localhost:8081
+```
+
+Then restart the dashboard server so it reads the value:
+
+```powershell
+npm ci
+npm run dev
+```
+
+Do not copy Markdown link syntax or escaped underscores into the PowerShell value. The correct one-line form is `$env:WATCHDOG_API_URL="http://localhost:8081"`.
+
+The app uses labelled demo data if any required API route is unavailable. Verify live mode with `Invoke-RestMethod http://localhost:8081/api/v1/status` before starting the dashboard.
 
 ## Checks
 

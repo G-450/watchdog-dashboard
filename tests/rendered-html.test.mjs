@@ -28,3 +28,13 @@ test("dashboard includes live API and explicit demo fallback", async () => {
   assert.match(proxy, /WATCHDOG_API_URL/);
   assert.match(proxy, /allowedEndpoints/);
 });
+
+test("time-dependent labels are hydration safe", async () => {
+  const [dashboard, data] = await Promise.all([
+    readFile(new URL("app/dashboard.tsx", root), "utf8"),
+    readFile(new URL("app/data.ts", root), "utf8"),
+  ]);
+  assert.match(dashboard, /const \[now,setNow\] = useState<number\|null>\(null\)/);
+  assert.match(dashboard, /if \(now === null\) return "Updating…"/);
+  assert.doesNotMatch(data, /Date\.now\(\)/);
+});
