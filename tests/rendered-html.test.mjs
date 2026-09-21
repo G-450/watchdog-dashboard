@@ -38,3 +38,26 @@ test("time-dependent labels are hydration safe", async () => {
   assert.doesNotMatch(dashboard, /useState<number\|null>\(null\)/);
   assert.doesNotMatch(data, /Date\.now\(\)/);
 });
+
+test("live data stays live when the agent answers", async () => {
+  const [client, dashboard] = await Promise.all([
+    readFile(new URL("app/api-client.ts", root), "utf8"),
+    readFile(new URL("app/dashboard.tsx", root), "utf8"),
+  ]);
+  // Only an unreachable agent (status request failing) switches to demo data.
+  assert.match(client, /getJSON<AgentStatus>\("status"\)[\s\S]*return demoData/);
+  // An agent without snapshots yet is an empty live state, not an error.
+  assert.match(client, /no_snapshots/);
+  assert.match(client, /snapshots\?limit=\$\{TREND_POINTS\}/);
+  assert.match(dashboard, /setInterval\(refresh,REFRESH_MS\)/);
+  assert.match(dashboard, /data\.warnings/);
+});
+
+test("workload figures use the agent's units", async () => {
+  const dashboard = await readFile(new URL("app/dashboard.tsx", root), "utf8");
+  // Usage is summed across replicas; requests are per replica.
+  assert.match(dashboard, /request\*Math\.max\(workload\.replicas,1\)/);
+  // Network usage is a rate in bytes per second.
+  assert.match(dashboard, /"B\/s","KiB\/s","MiB\/s","GiB\/s"/);
+  assert.doesNotMatch(dashboard, /bytes\(workload\.net_/);
+});
