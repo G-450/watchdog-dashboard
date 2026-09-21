@@ -30,11 +30,10 @@ export default function Dashboard() {
   const [namespace,setNamespace] = useState("all");
   const [selected,setSelected] = useState<Workload|null>(null);
   const [recommendationStatus,setRecommendationStatus] = useState("All");
-  const [now,setNow] = useState<number|null>(null);
+  const [now,setNow] = useState(()=>Date.now());
 
   useEffect(()=>{
     let active=true;
-    setNow(Date.now());
     const clock=window.setInterval(()=>setNow(Date.now()),30000);
     loadDashboardData().then(result=>{if(active){setData(result);setLoading(false)}});
     return()=>{active=false;window.clearInterval(clock)};

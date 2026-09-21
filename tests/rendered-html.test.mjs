@@ -34,7 +34,7 @@ test("time-dependent labels are hydration safe", async () => {
     readFile(new URL("app/dashboard.tsx", root), "utf8"),
     readFile(new URL("app/data.ts", root), "utf8"),
   ]);
-  assert.match(dashboard, /const \[now,setNow\] = useState<number\|null>\(null\)/);
-  assert.match(dashboard, /if \(now === null\) return "Updating…"/);
+  assert.match(dashboard, /const \[now,setNow\] = useState\(\(\)=>Date\.now\(\)\)/);
+  assert.doesNotMatch(dashboard, /useState<number\|null>\(null\)/);
   assert.doesNotMatch(data, /Date\.now\(\)/);
 });
