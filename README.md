@@ -1,63 +1,73 @@
 # Watchdog Dashboard
 
-Read-only operations and FinOps visibility for the Watchdog Kubernetes control plane.
+![Node Version](https://img.shields.io/badge/node-22+-blue.svg)
+![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)
 
-## Capabilities
+Operations dashboard for the Watchdog FinOps Control Plane. Displays cluster cost, workload utilization, and AI-generated rightsizing recommendations sourced from the agent API.
 
-- Cluster overview and snapshot freshness
-- Searchable workload utilization and cost inventory
-- Workload detail inspection with resource allocation and service mappings
-- Cost trend, namespace distribution, and top cost drivers
-- Recommendation evidence, confidence, policy trace, and validation result
-- Agent and storage status
-- Automatic demonstration fallback when the agent API is unavailable
+## Quick Start
 
-## Prerequisites
+**Prerequisites**: Node.js 22+
 
-- Node.js 22+
-- A running `watchdog-agent` instance exposing the `/api/v1/*` visibility endpoints on port 8081
+```bash
+git clone <watchdog-dashboard-repo>
+cd watchdog-dashboard
 
-## Local Development
+# Configure the agent API endpoint
+cp .env.example .env.local
+# Edit .env.local: set WATCHDOG_API_URL=http://localhost:8081
 
-1. **Configure the agent URL.** Create `.env.local` in the project root:
+npm ci
+npm run dev
+# Dashboard opens at http://localhost:3000
+```
 
-   ```dotenv
-   WATCHDOG_API_URL=http://localhost:8081
-   ```
+When the agent is unreachable the dashboard automatically switches to labelled demo mode — you can develop and test the UI without a running agent.
 
-   Alternatively, set the variable in your shell session before starting the dev server:
+## Environment
 
-   ```powershell
-   $env:WATCHDOG_API_URL="http://localhost:8081"
-   ```
+| Variable | Default | Description |
+|---|---|---|
+| `WATCHDOG_API_URL` | `http://localhost:8081` | Agent visibility API base URL |
 
-2. **Install dependencies and start the dev server:**
+Set in `.env.local` (gitignored). The server-side proxy at `app/api/watchdog/[endpoint]/route.ts` forwards requests to this URL, so there are no CORS issues.
 
-   ```bash
-   npm ci
-   npm run dev
-   ```
+## Commands
 
-3. **Verify the agent is reachable** before expecting live data:
+```bash
+npm ci           # Install dependencies (respects lockfile)
+npm run dev      # Dev server on :3000 with hot reload
+npm run build    # Production build
+npm run lint     # ESLint
+npm test         # HTML contract tests
+```
 
-   ```bash
-   curl http://localhost:8081/api/v1/status
-   ```
+## Project Structure
 
-   If the agent is unreachable, the dashboard falls back to labelled demo data automatically.
+```
+app/
+  api/watchdog/[endpoint]/route.ts   # Server-side proxy to agent API
+  api-client.ts                      # Fetch wrapper with demo-data fallback
+  page.tsx                           # Overview (cost + recommendation summary)
+  workloads/                         # Workload utilization view
+  recommendations/                   # Recommendations list
+  cost/                              # Cost trend view
+  status/                            # Agent status view
+```
 
-## Available Scripts
+## Demo Mode
 
-| Command | Purpose |
-|---------|---------|
-| `npm ci` | Install dependencies using the lockfile |
-| `npm run dev` | Start the development server on port 3000 |
-| `npm run build` | Production build |
-| `npm run lint` | Run ESLint static analysis |
-| `npm test` | Run production build and source-level contract checks |
+If `WATCHDOG_API_URL` is unset or the agent is unreachable, the dashboard falls back to built-in demo data and shows a "Demo Mode" label in the header. No config change needed — just run `npm run dev` without `.env.local`.
 
-## Related Repositories
+## Related Repos
 
-- [`watchdog-agent`](https://github.com/G-450/watchdog-agent): collection, persistence, reasoning, policy, and visibility API
-- [`infra-manifests`](https://github.com/mithulpranav24/infra-manifests): ArgoCD and Kubernetes deployment manifests
-- [`watchdog-docs`](https://github.com/mithulpranav24/watchdog-docs): architecture, decision records, phase plans, and operator guides
+- [watchdog-agent](https://github.com/G-450/watchdog-agent) — provides the API this dashboard consumes
+- [watchdog-infra](https://github.com/mithulpranav24/watchdog-infra) — in-cluster deployment manifests
+- [watchdog-docs](https://github.com/mithulpranav24/watchdog-docs) (private) — architecture docs
+
+## Team
+
+- mithulpranav24
+- Kiruthi001
+- Maalika07
+- RITHAN-SIVASAMY
