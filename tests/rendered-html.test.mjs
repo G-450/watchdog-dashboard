@@ -13,7 +13,7 @@ test("dashboard replaces starter metadata and preview", async () => {
   assert.match(page, /<Dashboard \/>/);
   assert.match(layout, /Watchdog Control Plane/);
   assert.doesNotMatch(page + layout, /codex-preview|SkeletonPreview|Starter Project/);
-  for (const surface of ["Overview", "Workloads", "Cost explorer", "Recommendations", "System status"]) assert.match(dashboard, new RegExp(surface));
+  for (const surface of ["Overview", "Workloads", "Cost explorer", "Recommendations", "Verification", "System status"]) assert.match(dashboard, new RegExp(surface));
 });
 
 test("dashboard includes live API and explicit demo fallback", async () => {
@@ -60,4 +60,20 @@ test("workload figures use the agent's units", async () => {
   // Network usage is a rate in bytes per second.
   assert.match(dashboard, /"B\/s","KiB\/s","MiB\/s","GiB\/s"/);
   assert.doesNotMatch(dashboard, /bytes\(workload\.net_/);
+});
+
+test("verification view reads the agent's verification contract", async () => {
+  const [client, data, proxy, dashboard] = await Promise.all([
+    readFile(new URL("app/api-client.ts", root), "utf8"),
+    readFile(new URL("app/data.ts", root), "utf8"),
+    readFile(new URL("app/api/watchdog/[endpoint]/route.ts", root), "utf8"),
+    readFile(new URL("app/dashboard.tsx", root), "utf8"),
+  ]);
+  assert.match(proxy, /"verifications"/);
+  // An older agent without the endpoint is an empty list, not a partial-data warning.
+  assert.match(client, /getJSON<\{items:Verification\[\];halted:HaltedWorkload\[\]\}>\("verifications"\)/);
+  assert.match(client, /error\.status === 404/);
+  for (const field of ["pr_url", "merged_at", "deployed_at", "rollback_pr", "failed_prs", "throttle_ratio", "oom_kills", "availability"]) assert.match(data, new RegExp(field));
+  for (const status of ["WaitingForRollout", "Verifying", "Verified", "Degraded", "RollbackProposed", "RollbackDeclined", "RolledBack", "NotDeployed", "Skipped"]) assert.match(dashboard, new RegExp(`${status}:`));
+  assert.match(dashboard, /watchdog\.finops\.io\/resume-after/);
 });

@@ -41,3 +41,18 @@ export const demoRecommendations: Recommendation[] = [
 
 export const demoSnapshots: Snapshot[] = [492.8,491.3,489.7,490.2,488.1,487.4,486.2].map((cost,index)=>({ timestamp:new Date(demoBaseTime-(6-index)*86400000).toISOString(), nodes:3, total_cost:cost }));
 export const demoStatus: AgentStatus = { agent_name:"watchdog-agent-01", status:"running", started_at:new Date(demoBaseTime-86400000*3).toISOString(), last_snapshot_at:demoOverview.timestamp, storage:"connected" };
+
+export type HealthSignals = { restarts: number; oom_kills: number; throttle_ratio: number; avg_replicas: number; availability: number };
+export type Verification = {
+  pr: number; pr_url: string; target: string; merged_at: string; deployed_at?: string;
+  changes: string; previous?: string; status: string; baseline?: HealthSignals; observed?: HealthSignals;
+  findings?: string[]; rollback_pr?: number; updated_at: string;
+};
+export type HaltedWorkload = { target: string; since: string; failed_prs: number[] };
+
+export const demoVerifications: Verification[] = [
+  { pr:42, pr_url:"https://github.com/example/watchdog-infra/pull/42", target:"payments/payment-api", merged_at:new Date(demoBaseTime-5400000).toISOString(), deployed_at:new Date(demoBaseTime-5100000).toISOString(), changes:'{"memory":"256Mi"}', previous:'{"memory":"512Mi"}', status:"RollbackProposed", baseline:{restarts:0,oom_kills:0,throttle_ratio:.01,avg_replicas:3,availability:1}, observed:{restarts:4,oom_kills:2,throttle_ratio:.01,avg_replicas:3,availability:.83}, findings:["4 container restarts after the change, 0 in the 30m0s before it.","OOMKilled containers after the change: 2."], rollback_pr:43, updated_at:new Date(demoBaseTime-4800000).toISOString() },
+  { pr:40, pr_url:"https://github.com/example/watchdog-infra/pull/40", target:"storefront/checkout-api", merged_at:new Date(demoBaseTime-10800000).toISOString(), deployed_at:new Date(demoBaseTime-10500000).toISOString(), changes:'{"cpu":"850m"}', previous:'{"cpu":"1200m"}', status:"Verified", baseline:{restarts:0,oom_kills:0,throttle_ratio:.03,avg_replicas:4,availability:1}, observed:{restarts:0,oom_kills:0,throttle_ratio:.04,avg_replicas:4,availability:1}, updated_at:new Date(demoBaseTime-8700000).toISOString() },
+  { pr:44, pr_url:"https://github.com/example/watchdog-infra/pull/44", target:"intelligence/recommendation-worker", merged_at:new Date(demoBaseTime-600000).toISOString(), deployed_at:new Date(demoBaseTime-420000).toISOString(), changes:'{"replicas":2}', previous:'{"replicas":3}', status:"Verifying", baseline:{restarts:0,oom_kills:0,throttle_ratio:0,avg_replicas:3,availability:1}, observed:{restarts:0,oom_kills:0,throttle_ratio:0,avg_replicas:2,availability:1}, updated_at:new Date(demoBaseTime-60000).toISOString() },
+];
+export const demoHalted: HaltedWorkload[] = [];

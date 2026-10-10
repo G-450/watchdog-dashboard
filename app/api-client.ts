@@ -1,8 +1,8 @@
-import { AgentStatus, Overview, Recommendation, Snapshot, Workload, demoOverview, demoRecommendations, demoSnapshots, demoStatus, demoWorkloads, emptyOverview } from "./data";
+import { AgentStatus, HaltedWorkload, Overview, Recommendation, Snapshot, Verification, Workload, demoHalted, demoOverview, demoRecommendations, demoSnapshots, demoStatus, demoVerifications, demoWorkloads, emptyOverview } from "./data";
 
-export type DashboardData = { overview: Overview; workloads: Workload[]; recommendations: Recommendation[]; snapshots: Snapshot[]; status: AgentStatus; source: "live" | "demo"; warnings: string[] };
+export type DashboardData = { overview: Overview; workloads: Workload[]; recommendations: Recommendation[]; snapshots: Snapshot[]; verifications: Verification[]; halted: HaltedWorkload[]; status: AgentStatus; source: "live" | "demo"; warnings: string[] };
 
-export const demoData: DashboardData = { overview:demoOverview, workloads:demoWorkloads, recommendations:demoRecommendations, snapshots:demoSnapshots, status:demoStatus, source:"demo", warnings:[] };
+export const demoData: DashboardData = { overview:demoOverview, workloads:demoWorkloads, recommendations:demoRecommendations, snapshots:demoSnapshots, verifications:demoVerifications, halted:demoHalted, status:demoStatus, source:"demo", warnings:[] };
 
 // Number of snapshots drawn in the cost trend charts.
 export const TREND_POINTS = 12;
@@ -42,12 +42,15 @@ export async function loadDashboardData(): Promise<DashboardData> {
     }
   };
   const noSnapshotsYet = (error: unknown) => error instanceof ApiError && error.code === "no_snapshots";
+  // Agents older than post-deployment verification do not serve the endpoint at all.
+  const noVerificationEndpoint = (error: unknown) => error instanceof ApiError && error.status === 404;
 
-  const [overview, workloads, recommendations, snapshots] = await Promise.all([
+  const [overview, workloads, recommendations, snapshots, verifications] = await Promise.all([
     settle("Overview", getJSON<Overview>("overview"), emptyOverview, noSnapshotsYet),
     settle("Workloads", getJSON<{items:Workload[]}>("workloads"), {items:[]}),
     settle("Recommendations", getJSON<{items:Recommendation[]}>("recommendations"), {items:[]}),
     settle("Cost history", getJSON<{items:Snapshot[]}>(`snapshots?limit=${TREND_POINTS}`), {items:[]}),
+    settle("Verifications", getJSON<{items:Verification[];halted:HaltedWorkload[]}>("verifications"), {items:[],halted:[]}, noVerificationEndpoint),
   ]);
-  return { overview, workloads:workloads.items, recommendations:recommendations.items, snapshots:snapshots.items, status, source:"live", warnings };
+  return { overview, workloads:workloads.items, recommendations:recommendations.items, snapshots:snapshots.items, verifications:verifications.items, halted:verifications.halted, status, source:"live", warnings };
 }
