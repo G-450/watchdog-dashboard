@@ -1,4 +1,4 @@
-const allowedEndpoints = new Set(["overview", "workloads", "recommendations", "snapshots", "status"]);
+const allowedEndpoints = new Set(["overview", "workloads", "recommendations", "snapshots", "status", "verifications"]);
 
 export async function GET(request: Request, context: { params: Promise<{ endpoint: string }> }) {
   const { endpoint } = await context.params;
